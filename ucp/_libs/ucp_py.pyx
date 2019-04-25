@@ -181,7 +181,7 @@ class ListenerFuture(concurrent.futures.Future):
     def __del__(self):
         pass
 
-cdef class ucp_py_ep:
+cdef class EndPoint:
     """A class that represents an endpoint connected to a peer
     """
 
@@ -525,7 +525,7 @@ cdef class ucp_comm_request:
 
 
 cdef void accept_callback(void *client_ep_ptr, void *lf):
-    client_ep = ucp_py_ep()
+    client_ep = EndPoint()
     client_ep.ucp_ep = client_ep_ptr
     listener_instance = (<object> lf)
     if not listener_instance.is_coroutine:
@@ -648,13 +648,13 @@ def get_endpoint(peer_ip, peer_port):
 
     Returns
     -------
-    An endpoint object of class `ucp_py_ep` on which methods like
+    An endpoint object of class `EndPoint` on which methods like
     `send_msg` and `recv_msg` may be called
     """
     global UCX_FILE_DESCRIPTOR
     global reader_added
 
-    ep = ucp_py_ep()
+    ep = EndPoint()
     ep.connect(peer_ip, peer_port)
 
     if 0 == reader_added:
@@ -683,7 +683,7 @@ def destroy_ep(ucp_ep):
 
     Parameters
     ----------
-    ucp_ep: ucp_py_ep
+    ucp_ep: EndPoint
         endpoint to peer
 
     Returns
@@ -705,7 +705,7 @@ def get_obj_from_msg(msg):
     ----------
     msg: ucp_msg
         msg received from `recv_msg` or `recv_future` methods of
-        ucp_py_ep
+        EndPoint
 
     Returns
     -------
