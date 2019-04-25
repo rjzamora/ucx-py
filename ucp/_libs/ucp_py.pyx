@@ -225,7 +225,7 @@ cdef class EndPoint:
         msg.ctx_ptr = ucp_py_ep_send_nb(self.ep, msg.buf, len)
         return msg.get_comm_request(len)
 
-    def _recv(self, buffer_region buf_reg, int nbytes, name):
+    def _recv(self, BufferRegion buf_reg, int nbytes, name):
         # helper for recv_obj, recv_into
         msg = UCPMessage(buf_reg, name=name)
         msg.ctx_ptr = ucp_py_recv_nb(self.ep, msg.buf, nbytes)
@@ -240,7 +240,7 @@ cdef class EndPoint:
         """
         Receive into an existing block of memory.
         """
-        buf_reg = buffer_region()
+        buf_reg = BufferRegion()
         buf_reg.shape[0] = nbytes
         if hasattr(buffer, '__cuda_array_interface__'):
             buf_reg.populate_cuda_ptr(buffer)
@@ -283,9 +283,9 @@ cdef class EndPoint:
         >>> msg = await ep.recv_obj(1000, cuda=True)
         >>> result = ucp.get_obj_from_msg(msg)
         >>> result
-        <ucp_py._libs.ucp_py.buffer_region at 0x...>
+        <ucp_py._libs.ucp_py.BufferRegion at 0x...>
         """
-        buf_reg = buffer_region()
+        buf_reg = BufferRegion()
         if cuda:
             buf_reg.alloc_cuda(nbytes)
             buf_reg._is_cuda = 1
@@ -295,12 +295,12 @@ cdef class EndPoint:
         return self._recv(buf_reg, nbytes, name)
 
     def _send_obj_cuda(self, obj):
-        buf_reg = buffer_region()
+        buf_reg = BufferRegion()
         buf_reg.populate_cuda_ptr(obj)
         return buf_reg
 
     def _send_obj_host(self, format_[:] obj):
-        buf_reg = buffer_region()
+        buf_reg = BufferRegion()
         buf_reg.populate_ptr(obj)
         return buf_reg
 
@@ -361,17 +361,17 @@ cdef class UCPMessage:
     cdef int alloc_len
     cdef int comm_len
     cdef int internally_allocated
-    cdef buffer_region buf_reg
+    cdef BufferRegion buf_reg
     cdef str _name
     cdef int _length
     cdef int is_blind
 
-    def __cinit__(self, buffer_region buf_reg, name='', length=-1):
+    def __cinit__(self, BufferRegion buf_reg, name='', length=-1):
         self._name = name
         self._length = length
 
         if buf_reg is None:
-            self.buf_reg = buffer_region()
+            self.buf_reg = BufferRegion()
             return
         else:
             self.buf = buf_reg.buf
@@ -486,9 +486,9 @@ cdef class UCPMessage:
 
         Returns
         -------
-        obj: memoryview or buffer_region
+        obj: memoryview or BufferRegion
             For CPU receives, this returns a memoryview on the buffer.
-            For GPU receives, this returns a `buffer_region`, which
+            For GPU receives, this returns a `BufferRegion`, which
             implements the CUDA array interface. Note that the metadata
             like ``typestr`` and ``shape`` may be incorrect. This will
             need to be manually fixed before consuming the buffer.
